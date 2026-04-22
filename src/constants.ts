@@ -3,11 +3,7 @@ import { TFeedTabConfig, TRelaySet } from './types'
 
 export const JUMBLE_API_BASE_URL = 'https://api.jumble.social'
 
-export const RECOMMENDED_BLOSSOM_SERVERS = [
-  'https://blossom.band/',
-  'https://blossom.primal.net/',
-  'https://nostr.media/'
-]
+export const RECOMMENDED_BLOSSOM_SERVERS = ['https://chat.virginiafreedom.tech']
 
 export const StorageKey = {
   VERSION: 'version',
@@ -80,14 +76,9 @@ export const ApplicationDataKey = {
   NOTIFICATIONS_SEEN_AT: 'seen_notifications_at'
 }
 
-export const BIG_RELAY_URLS = [
-  'wss://relay.damus.io/',
-  'wss://nos.lol/',
-  'wss://relay.primal.net/',
-  'wss://offchain.pub/'
-]
+export const BIG_RELAY_URLS = ['wss://chat.virginiafreedom.tech']
 
-export const SEARCHABLE_RELAY_URLS = ['wss://search.nos.today/', 'wss://relay.nostr.band/']
+export const SEARCHABLE_RELAY_URLS = ['wss://chat.virginiafreedom.tech']
 
 export const TRENDING_NOTES_RELAY_URLS = ['wss://trending.relays.land/']
 
@@ -189,18 +180,9 @@ export const NIP_96_SERVICE = [
 ]
 export const DEFAULT_NIP_96_SERVICE = 'https://nostr.build'
 
-export const DEFAULT_NOSTRCONNECT_RELAY = [
-  'wss://bucket.coracle.social/',
-  'wss://relay.primal.net/',
-  'wss://relay.damus.io/'
-]
+export const DEFAULT_NOSTRCONNECT_RELAY = ['wss://chat.virginiafreedom.tech']
 
-export const DEFAULT_DM_RELAYS = [
-  'wss://nip17.com/',
-  'wss://relay.damus.io/',
-  'wss://nos.lol/',
-  'wss://relay.primal.net/'
-]
+export const DEFAULT_DM_RELAYS = ['wss://chat.virginiafreedom.tech']
 
 export const DM_TIME_RANDOMIZATION_SECONDS = 2 * 24 * 60 * 60 // 2 days in seconds
 
