@@ -1,4 +1,4 @@
-import { ExtendedKind } from '@/constants'
+import { ExtendedKind, IS_COMMUNITY_MODE, COMMUNITY_RELAY_SETS, COMMUNITY_RELAYS } from '@/constants'
 import {
   compareEvents,
   getReplaceableCoordinate,
@@ -1201,6 +1201,20 @@ class ClientService extends EventTarget {
   }
 
   async fetchRelayLists(pubkeys: string[]): Promise<TRelayList[]> {
+    // In community mode, scope all relay list resolution to our relay only.
+    // This prevents outbound connections to external relays via the NIP-65 outbox model.
+    if (IS_COMMUNITY_MODE) {
+      const communityRelays = [
+        ...COMMUNITY_RELAY_SETS.flatMap((s) => s.relayUrls),
+        ...COMMUNITY_RELAYS
+      ]
+      return pubkeys.map(() => ({
+        write: communityRelays,
+        read: communityRelays,
+        originalRelays: []
+      }))
+    }
+
     const relayEvents = await this.fetchReplaceableEventsFromBigRelays(pubkeys, kinds.RelayList)
 
     return relayEvents.map((event) => {

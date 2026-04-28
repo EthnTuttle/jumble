@@ -5,7 +5,7 @@ import DataLoader from 'dataloader'
 import { NostrEvent } from 'nostr-tools'
 import client from './client.service'
 
-const SERVICE_URL = 'https://fayan.jumble.social'
+const SERVICE_URL = '' // disabled: community instance does not use Jumble's central API
 
 class FayanService {
   static instance: FayanService
