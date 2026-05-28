@@ -183,9 +183,27 @@ class ClientService extends EventTarget {
       const checkCompletion = (url: string, success: boolean, error?: unknown) => {
         if (error) {
           errors.push({ url, error })
+          if (
+            IS_COMMUNITY_MODE &&
+            COMMUNITY_RELAYS?.length &&
+            normalizeUrl(url) === normalizeUrl(COMMUNITY_RELAYS[0])
+          ) {
+            this.dispatchEvent(
+              new CustomEvent('relay-access-denied', {
+                detail: { url, reason: error instanceof Error ? error.message : String(error) }
+              })
+            )
+          }
         }
         if (success) {
           successCount++
+          if (
+            IS_COMMUNITY_MODE &&
+            COMMUNITY_RELAYS?.length &&
+            normalizeUrl(url) === normalizeUrl(COMMUNITY_RELAYS[0])
+          ) {
+            this.dispatchEvent(new CustomEvent('relay-access-allowed', { detail: { url } }))
+          }
         }
         finishedCount++
 

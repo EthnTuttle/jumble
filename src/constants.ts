@@ -1,7 +1,7 @@
 import { kinds } from 'nostr-tools'
 import { TFeedTabConfig, TRelaySet } from './types'
 
-export const JUMBLE_API_BASE_URL = 'https://api.jumble.social'
+export const JUMBLE_API_BASE_URL = 'https://chat.virginiafreedom.tech'
 
 export const RECOMMENDED_BLOSSOM_SERVERS = ['https://chat.virginiafreedom.tech']
 
@@ -80,7 +80,7 @@ export const BIG_RELAY_URLS = ['wss://chat.virginiafreedom.tech']
 
 export const SEARCHABLE_RELAY_URLS = ['wss://chat.virginiafreedom.tech']
 
-export const TRENDING_NOTES_RELAY_URLS = ['wss://trending.relays.land/']
+export const TRENDING_NOTES_RELAY_URLS = ['wss://chat.virginiafreedom.tech']
 
 export const GROUP_METADATA_EVENT_KIND = 39000
 
@@ -171,14 +171,9 @@ export const JUMBLE_PUBKEY = 'f4eb8e62add1340b9cadcd9861e669b2e907cea534e0f7f3ac
 export const CODY_PUBKEY = '8125b911ed0e94dbe3008a0be48cfe5cd0c0b05923cfff917ae7e87da8400883'
 
 export const NIP_96_SERVICE = [
-  'https://mockingyou.com',
-  'https://nostpic.com',
-  'https://nostr.build', // default
-  'https://nostrcheck.me',
-  'https://nostrmedia.com',
-  'https://files.sovbit.host'
+  'https://chat.virginiafreedom.tech', // default
 ]
-export const DEFAULT_NIP_96_SERVICE = 'https://nostr.build'
+export const DEFAULT_NIP_96_SERVICE = 'https://chat.virginiafreedom.tech'
 
 export const DEFAULT_NOSTRCONNECT_RELAY = ['wss://chat.virginiafreedom.tech']
 
@@ -516,3 +511,6 @@ export const COMMUNITY_RELAY_SETS = import.meta.env.VITE_COMMUNITY_RELAY_SETS as
 export const COMMUNITY_RELAYS = import.meta.env.VITE_COMMUNITY_RELAYS as string[]
 
 export const IS_COMMUNITY_MODE = COMMUNITY_RELAY_SETS.length > 0 || COMMUNITY_RELAYS.length > 0
+
+export const COMMUNITY_RELAY_OPERATOR_PUBKEY =
+  'd07e1ef42535d003b31cac149cba4a47e527a55375c6e4700977271d10d976db'

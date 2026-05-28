@@ -2,15 +2,19 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { IS_COMMUNITY_MODE } from '@/constants'
+import { useRelayAccess } from '@/hooks/useRelayAccess'
 import { useNostr } from '@/providers/NostrProvider'
-import { Check, Copy, Download, RefreshCcw } from 'lucide-react'
+import { Check, Copy, Download, Loader2, RefreshCcw } from 'lucide-react'
 import { generateSecretKey } from 'nostr-tools'
 import { nsecEncode } from 'nostr-tools/nip19'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import InfoCard from '../InfoCard'
 
-type Step = 'generate' | 'password'
+type Step = 'generate' | 'password' | 'relay-access'
 
 export default function Signup({
   back,
@@ -21,12 +25,15 @@ export default function Signup({
 }) {
   const { t } = useTranslation()
   const { nsecLogin } = useNostr()
+  const { requestAccess, communityRelayUrl } = useRelayAccess()
   const [step, setStep] = useState<Step>('generate')
   const [nsec, setNsec] = useState(generateNsec())
   const [checkedSaveKey, setCheckedSaveKey] = useState(false)
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [copied, setCopied] = useState(false)
+  const [accessNote, setAccessNote] = useState('')
+  const [isRequestingAccess, setIsRequestingAccess] = useState(false)
 
   const handleDownload = () => {
     const blob = new Blob([nsec], { type: 'text/plain' })
@@ -42,32 +49,54 @@ export default function Signup({
 
   const handleSignup = async () => {
     await nsecLogin(nsec, password || undefined, true)
-    onSignupSuccess()
+    if (IS_COMMUNITY_MODE && communityRelayUrl) {
+      setStep('relay-access')
+    } else {
+      onSignupSuccess()
+    }
+  }
+
+  const handleRequestAccess = async () => {
+    setIsRequestingAccess(true)
+    try {
+      await requestAccess(accessNote)
+    } catch (err) {
+      toast.error(t('Failed to send access request') + ': ' + (err as Error).message)
+    } finally {
+      setIsRequestingAccess(false)
+      onSignupSuccess()
+    }
   }
 
   const passwordsMatch = password === confirmPassword
   const canSubmit = !password || passwordsMatch
 
-  const renderStepIndicator = () => (
-    <div className="flex items-center justify-center gap-2">
-      {(['generate', 'password'] as Step[]).map((s, index) => (
-        <div key={s} className="flex items-center">
-          <div
-            className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold ${
-              step === s
-                ? 'bg-primary text-primary-foreground'
-                : step === 'password' && s === 'generate'
-                  ? 'bg-primary/20 text-primary'
-                  : 'bg-muted text-muted-foreground'
-            }`}
-          >
-            {index + 1}
+  const renderStepIndicator = () => {
+    const steps: Step[] = IS_COMMUNITY_MODE && communityRelayUrl
+      ? ['generate', 'password', 'relay-access']
+      : ['generate', 'password']
+    const currentIdx = steps.indexOf(step)
+    return (
+      <div className="flex items-center justify-center gap-2">
+        {steps.map((s, index) => (
+          <div key={s} className="flex items-center">
+            <div
+              className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold ${
+                step === s
+                  ? 'bg-primary text-primary-foreground'
+                  : index < currentIdx
+                    ? 'bg-primary/20 text-primary'
+                    : 'bg-muted text-muted-foreground'
+              }`}
+            >
+              {index + 1}
+            </div>
+            {index < steps.length - 1 && <div className="mx-1 h-0.5 w-12 bg-muted" />}
           </div>
-          {index < 1 && <div className="mx-1 h-0.5 w-12 bg-muted" />}
-        </div>
-      ))}
-    </div>
-  )
+        ))}
+      </div>
+    )
+  }
 
   if (step === 'generate') {
     return (
@@ -153,8 +182,7 @@ export default function Signup({
     )
   }
 
-  // step === 'password'
-  return (
+  if (step === 'password') return (
     <div className="space-y-6">
       {renderStepIndicator()}
 
@@ -214,7 +242,60 @@ export default function Signup({
           {t('Back')}
         </Button>
         <Button onClick={handleSignup} className="flex-1" disabled={!canSubmit}>
-          {t('Complete Signup')}
+          {IS_COMMUNITY_MODE && communityRelayUrl ? t('Continue') : t('Complete Signup')}
+        </Button>
+      </div>
+    </div>
+  )
+
+  // step === 'relay-access' (only reached in community mode after password step)
+  const relayHost = communityRelayUrl
+    ? new URL('wss://' + communityRelayUrl.replace(/^wss?:\/\//, '')).hostname
+    : ''
+
+  return (
+    <div className="space-y-6">
+      {renderStepIndicator()}
+
+      <div className="text-center">
+        <h3 className="mb-2 text-lg font-semibold">
+          {t('Join {{relay}}', { relay: relayHost })}
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          {t(
+            'This community relay is invite-only. Send a short note to request access from an admin.'
+          )}
+        </p>
+      </div>
+
+      <InfoCard
+        title={t('Your account is ready')}
+        content={t(
+          'Your Nostr key has been created. To post on this relay you need to be approved by an admin. Submit a request below or skip and request later.'
+        )}
+      />
+
+      <div className="space-y-1">
+        <Label htmlFor="access-note-input">{t('Note to admins (optional)')}</Label>
+        <Textarea
+          id="access-note-input"
+          placeholder={t('Introduce yourself...')}
+          value={accessNote}
+          onChange={(e) => setAccessNote(e.target.value)}
+          maxLength={280}
+          rows={3}
+          className="resize-none"
+        />
+        <p className="text-right text-xs text-muted-foreground">{accessNote.length}/280</p>
+      </div>
+
+      <div className="flex w-full gap-2">
+        <Button variant="secondary" onClick={onSignupSuccess} className="w-fit px-6">
+          {t('Skip for now')}
+        </Button>
+        <Button onClick={handleRequestAccess} className="flex-1" disabled={isRequestingAccess}>
+          {isRequestingAccess ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+          {t('Request Access')}
         </Button>
       </div>
     </div>
